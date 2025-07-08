@@ -27,7 +27,7 @@ resources:
       type: github
       name: KrijnvanderBurg/.azuredevops
       endpoint: KrijnvanderBurg
-      ref: main
+      ref: feature/fix
 
 stages:
   - template: /v1/pipelines/flint.yaml@azuredevops

@@ -9,9 +9,12 @@
 </p>
 
 <p align="center">
-  <a href="https://pypi.org/project/flint/"><img src="https://img.shields.io/badge/python-3.11-informational" alt="Python Versions"></a>
+  <a href="https://github.com/krijnvanderburg/config-driven-pyspark-framework/actions/workflows/ci.yml"><img src="https://github.com/krijnvanderburg/config-driven-pyspark-framework/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
+  <a href="https://github.com/krijnvanderburg/config-driven-pyspark-framework/actions/workflows/security.yml"><img src="https://github.com/krijnvanderburg/config-driven-pyspark-framework/actions/workflows/security.yml/badge.svg" alt="Security"></a>
+  <a href="https://pypi.org/project/flint/"><img src="https://img.shields.io/badge/python-3.9%20%7C%203.10%20%7C%203.11%20%7C%203.12-informational" alt="Python Versions"></a>
   <a href="https://github.com/krijnvanderburg/config-driven-pyspark-framework/blob/main/LICENSE"><img src="https://img.shields.io/github/license/krijnvanderburg/config-driven-pyspark-framework?style=flat-square" alt="License"></a>
   <a href="https://spark.apache.org/docs/latest/"><img src="https://img.shields.io/badge/spark-3.5.0+-lightgrey" alt="Apache Spark"></a>
+  <a href="https://codecov.io/gh/krijnvanderburg/config-driven-pyspark-framework"><img src="https://codecov.io/gh/krijnvanderburg/config-driven-pyspark-framework/graph/badge.svg" alt="Coverage"></a>
 </p>
 
 <p align="center">

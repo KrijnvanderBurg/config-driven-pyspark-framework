@@ -1,0 +1,9 @@
+name: 'Poetry Build'
+description: 'Build Python package using Poetry'
+runs:
+  using: 'composite'
+  steps:
+    - name: Build package
+      shell: bash
+      run: |
+        poetry build --no-interaction --no-ansi

@@ -1,0 +1,15 @@
+name: 'Poetry Install'
+description: 'Install dependencies using Poetry'
+runs:
+  using: 'composite'
+  steps:
+    - name: Install dependencies
+      shell: bash
+      run: |
+        poetry config virtualenvs.create false
+        if [ -f "poetry.lock" ]; then
+          poetry install --no-interaction --no-ansi
+        else
+          poetry lock --no-interaction --no-ansi
+          poetry install --no-interaction --no-ansi
+        fi

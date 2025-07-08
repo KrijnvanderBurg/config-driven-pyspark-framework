@@ -1,0 +1,28 @@
+name: 'Pylint'
+description: 'Lint code using Pylint'
+inputs:
+  target-path:
+    description: 'Path to lint'
+    required: false
+    default: '.'
+  config-file:
+    description: 'Path to pylint configuration file'
+    required: false
+    default: '.devcontainer/.dotfiles/python/.pylintrc'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Run Pylint
+      shell: bash
+      run: |
+        CONFIG_ARG=""
+        if [ -f "${{ inputs.config-file }}" ]; then
+          CONFIG_ARG="--rcfile ${{ inputs.config-file }}"
+        fi
+        
+        pylint \
+          --output-format=colorized \
+          --reports=y \
+          $CONFIG_ARG \
+          ${{ inputs.target-path }}

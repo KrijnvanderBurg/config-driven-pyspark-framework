@@ -1,0 +1,25 @@
+name: 'Python Formatters'
+description: 'Run all Python code formatters'
+inputs:
+  target-path:
+    description: 'Path to format'
+    required: false
+    default: 'src'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Run Black formatter
+      uses: ./.github/actions/atomic/black
+      with:
+        target-path: ${{ inputs.target-path }}
+    
+    - name: Run isort import sorter
+      uses: ./.github/actions/atomic/isort
+      with:
+        target-path: ${{ inputs.target-path }}
+    
+    - name: Run Ruff formatter
+      uses: ./.github/actions/atomic/ruff-formatter
+      with:
+        target-path: ${{ inputs.target-path }}

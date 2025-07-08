@@ -1,0 +1,27 @@
+name: 'Python Linters'
+description: 'Run all Python code linters'
+inputs:
+  target-path:
+    description: 'Path to lint'
+    required: false
+    default: 'src'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Run Ruff linter
+      uses: ./.github/actions/atomic/ruff-linter
+      with:
+        target-path: ${{ inputs.target-path }}
+    
+    - name: Run Pylint
+      uses: ./.github/actions/atomic/pylint
+      with:
+        target-path: ${{ inputs.target-path }}
+      continue-on-error: true
+    
+    - name: Run Flake8
+      uses: ./.github/actions/atomic/flake8
+      with:
+        target-path: ${{ inputs.target-path }}
+      continue-on-error: true

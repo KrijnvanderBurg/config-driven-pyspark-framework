@@ -1,0 +1,34 @@
+name: 'isort Import Sorter'
+description: 'Sort imports using isort'
+inputs:
+  target-path:
+    description: 'Path to check'
+    required: false
+    default: '.'
+  config-file:
+    description: 'Path to isort configuration file'
+    required: false
+    default: '.devcontainer/.dotfiles/python/.isort.cfg'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Run isort
+      shell: bash
+      run: |
+        target_path="${{ inputs.target-path }}"
+        config_filepath="${{ inputs.config-file }}"
+        
+        echo "Scanning folder: $target_path"
+        echo "Config file: $config_filepath"
+        
+        # Install isort if not already installed
+        if ! command -v isort &> /dev/null; then
+            echo "Installing isort..."
+            pip install isort --quiet
+        fi
+        echo -n "isort version: " && isort --version
+        
+        isort --check-only "$target_path" \
+          --settings-path "$config_filepath" \
+          --diff

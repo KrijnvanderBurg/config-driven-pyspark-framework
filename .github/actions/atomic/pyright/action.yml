@@ -1,0 +1,33 @@
+name: 'Pyright Type Checker'
+description: 'Type check code using Pyright'
+inputs:
+  target-path:
+    description: 'Path to type check'
+    required: false
+    default: '.'
+  config-file:
+    description: 'Path to pyright configuration file'
+    required: false
+    default: '.devcontainer/.dotfiles/python/pyrightconfig.json'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Install Pyright
+      shell: bash
+      run: |
+        if ! command -v pyright &> /dev/null; then
+          npm install -g pyright
+        fi
+    
+    - name: Run Pyright
+      shell: bash
+      run: |
+        CONFIG_ARG=""
+        if [ -f "${{ inputs.config-file }}" ]; then
+          CONFIG_ARG="--project ${{ inputs.config-file }}"
+        fi
+        
+        pyright \
+          $CONFIG_ARG \
+          ${{ inputs.target-path }}

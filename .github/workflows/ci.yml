@@ -1,0 +1,172 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+  workflow_dispatch:
+    inputs:
+      python-version:
+        description: 'Python version to use'
+        required: false
+        default: '3.11'
+        type: choice
+        options:
+          - '3.9'
+          - '3.10'
+          - '3.11'
+          - '3.12'
+
+env:
+  PYTHON_VERSION: ${{ github.event.inputs.python-version || '3.11' }}
+  PYTHON_SRC_DIRECTORY: src
+  PYTHON_TESTS_DIRECTORY: tests
+  PYTHON_PYPROJECT_FILEPATH: pyproject.toml
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  quality-assurance:
+    name: Code Quality
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+        with:
+          version: latest
+          virtualenvs-create: false
+
+      - name: Install dependencies
+        uses: ./.github/actions/atomic/poetry-install
+
+      - name: Run formatters
+        uses: ./.github/actions/composite/python-formatters
+        with:
+          target-path: ${{ env.PYTHON_SRC_DIRECTORY }}
+
+      - name: Run linters
+        uses: ./.github/actions/composite/python-linters
+        with:
+          target-path: ${{ env.PYTHON_SRC_DIRECTORY }}
+
+      - name: Run type checkers
+        uses: ./.github/actions/composite/python-typechecking
+        with:
+          target-path: ${{ env.PYTHON_SRC_DIRECTORY }}
+
+  tests:
+    name: Tests
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ['3.9', '3.10', '3.11', '3.12']
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+        with:
+          version: latest
+          virtualenvs-create: false
+
+      - name: Install dependencies
+        uses: ./.github/actions/atomic/poetry-install
+
+      - name: Run tests with coverage
+        uses: ./.github/actions/atomic/pytest
+        with:
+          tests-path: ${{ env.PYTHON_TESTS_DIRECTORY }}
+          coverage-path: ${{ env.PYTHON_SRC_DIRECTORY }}
+
+      - name: Upload coverage reports
+        uses: codecov/codecov-action@v3
+        with:
+          file: ./coverage.xml
+          fail_ci_if_error: false
+
+  security-scanning:
+    name: Security Scanning
+    runs-on: ubuntu-latest
+    permissions:
+      security-events: write
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+        with:
+          version: latest
+          virtualenvs-create: false
+
+      - name: Install dependencies
+        uses: ./.github/actions/atomic/poetry-install
+
+      - name: Run 1st party vulnerability scanning
+        uses: ./.github/actions/composite/python-security-1st-party
+        with:
+          python-src-directory: ${{ env.PYTHON_SRC_DIRECTORY }}
+          python-project-directory: .
+
+      - name: Run 3rd party vulnerability scanning
+        uses: ./.github/actions/composite/python-security-3rd-party
+
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    needs: [quality-assurance, tests, security-scanning]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+        with:
+          version: latest
+          virtualenvs-create: false
+
+      - name: Install dependencies
+        uses: ./.github/actions/atomic/poetry-install
+
+      - name: Build wheel
+        uses: ./.github/actions/atomic/poetry-build
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: python-package-distributions
+          path: dist/

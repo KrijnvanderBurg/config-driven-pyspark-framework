@@ -1,0 +1,27 @@
+name: 'Flake8'
+description: 'Lint code using Flake8'
+inputs:
+  target-path:
+    description: 'Path to lint'
+    required: false
+    default: '.'
+  config-file:
+    description: 'Path to flake8 configuration file'
+    required: false
+    default: '.devcontainer/.dotfiles/python/.flake8'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Run Flake8
+      shell: bash
+      run: |
+        CONFIG_ARG=""
+        if [ -f "${{ inputs.config-file }}" ]; then
+          CONFIG_ARG="--config ${{ inputs.config-file }}"
+        fi
+        
+        flake8 \
+          --format='%(path)s:%(row)d:%(col)d: %(code)s %(text)s' \
+          $CONFIG_ARG \
+          ${{ inputs.target-path }}

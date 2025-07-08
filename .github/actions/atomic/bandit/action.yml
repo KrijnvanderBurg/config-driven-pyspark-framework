@@ -1,0 +1,33 @@
+name: 'Bandit Security Scanner'
+description: 'Scan for security issues using Bandit'
+inputs:
+  target-path:
+    description: 'Path to scan'
+    required: false
+    default: '.'
+  config-file:
+    description: 'Path to bandit configuration file'
+    required: false
+    default: '.devcontainer/.dotfiles/python/bandit.ini'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Run Bandit
+      shell: bash
+      run: |
+        target_path="${{ inputs.target-path }}"
+        config_filepath="${{ inputs.config-file }}"
+        
+        echo "Scanning folder: $target_path"
+        echo "Config file: $config_filepath"
+        
+        # Install bandit if not already installed
+        if ! command -v bandit &> /dev/null; then
+            echo "Installing bandit..."
+            pip install bandit --quiet
+        fi
+        echo -n "bandit version: " && bandit --version
+        
+        bandit -r "$target_path" \
+          -c "$config_filepath"

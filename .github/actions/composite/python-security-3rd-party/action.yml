@@ -1,0 +1,14 @@
+name: 'Python 3rd Party Security Scanning'
+description: 'Run security scanners for third-party dependencies'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Run Safety dependency scanner
+      uses: ./.github/actions/atomic/safety
+    
+    - name: Run GitHub Security Advisory Database Check
+      uses: pypa/gh-action-pip-audit@v1.0.8
+      with:
+        inputs: pyproject.toml
+        virtual-environment: .venv

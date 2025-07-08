@@ -1,0 +1,63 @@
+name: 'Pytest'
+description: 'Run tests using pytest with coverage'
+inputs:
+  tests-path:
+    description: 'Path to test directory'
+    required: false
+    default: 'tests'
+  coverage-path:
+    description: 'Path to source directory for coverage'
+    required: false
+    default: 'src'
+  pytest-config:
+    description: 'Path to pytest configuration file'
+    required: false
+    default: '.devcontainer/.dotfiles/python/pytest.ini'
+  coverage-config:
+    description: 'Path to coverage configuration file'
+    required: false
+    default: '.devcontainer/.dotfiles/python/.coveragerc'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Run pytest with coverage
+      shell: bash
+      run: |
+        tests_path="${{ inputs.tests-path }}"
+        coverage_path="${{ inputs.coverage-path }}"
+        config_filepath_pytest="${{ inputs.pytest-config }}"
+        config_filepath_coverage="${{ inputs.coverage-config }}"
+        output_coverage_filepath="$PWD/coverage.xml"
+        output_junit_filepath="$PWD/JUNIT-TEST.xml"
+        
+        echo "Tests path: $tests_path"
+        echo "Coverage path: $coverage_path"
+        echo "Config file pytest: $config_filepath_pytest"
+        echo "Config file coverage: $config_filepath_coverage"
+        echo "Coverage output will be saved to: $output_coverage_filepath"
+        echo "Pytest junit output will be saved to: $output_junit_filepath"
+        
+        # Install pytest and related packages if not already installed
+        if ! command -v pytest &> /dev/null; then
+            echo "Installing pytest..."
+            pip install pytest --quiet
+            pip install pytest-cov pytest-xdist --quiet
+        fi
+        
+        pytest "$tests_path" \
+        -c="$config_filepath_pytest" \
+        -o "cache_dir=$PWD/.pytest_cache" \
+        --cov="$coverage_path" \
+        --cov-report="xml:$output_coverage_filepath" \
+        --cov-config="$config_filepath_coverage" \
+        --junitxml="$output_junit_filepath"
+        
+    - name: Upload test results
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: test-results
+        path: |
+          JUNIT-TEST.xml
+          coverage.xml

@@ -1,0 +1,37 @@
+name: 'Black Formatter'
+description: 'Format code using Black'
+inputs:
+  target-path:
+    description: 'Path to format'
+    required: false
+    default: '.'
+  config-file:
+    description: 'Path to black configuration file'
+    required: false
+    default: '.devcontainer/.dotfiles/python/.black'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Run Black formatter
+      shell: bash
+      run: |
+        target_path="${{ inputs.target-path }}"
+        config_filepath="${{ inputs.config-file }}"
+        
+        echo "Scanning folder: $target_path"
+        echo "Config file: $config_filepath"
+        
+        # Install black if not already installed
+        if ! command -v black &> /dev/null; then
+            echo "Installing black..."
+            pip install black --quiet
+        fi
+        echo -n "black version: " && black --version
+        
+        black "$target_path" \
+          --config "$config_filepath" \
+          --check \
+          --diff \
+          --color \
+          --verbose

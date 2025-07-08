@@ -1,0 +1,42 @@
+name: 'Safety Dependency Scanner'
+description: 'Scan dependencies for known vulnerabilities using Safety'
+inputs:
+  requirements-file:
+    description: 'Path to requirements file'
+    required: false
+    default: 'pyproject.toml'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Install Safety
+      shell: bash
+      run: |
+        if ! command -v safety &> /dev/null; then
+          pip install safety
+        fi
+    
+    - name: Export requirements
+      shell: bash
+      run: |
+        poetry export --format=requirements.txt --output=requirements-safety.txt --without-hashes
+    
+    - name: Run Safety check
+      shell: bash
+      run: |
+        safety check \
+          --requirement requirements-safety.txt \
+          --json \
+          --output safety-report.json || true
+        
+        # Also output to console
+        safety check \
+          --requirement requirements-safety.txt \
+          --short-report
+    
+    - name: Upload Safety results
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: safety-results
+        path: safety-report.json

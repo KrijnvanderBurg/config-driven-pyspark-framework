@@ -1,0 +1,28 @@
+name: 'Ruff Formatter'
+description: 'Format code using Ruff'
+inputs:
+  target-path:
+    description: 'Path to format'
+    required: false
+    default: '.'
+  config-file:
+    description: 'Path to ruff configuration file'
+    required: false
+    default: '.devcontainer/.dotfiles/python/ruff.toml'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Run Ruff formatter
+      shell: bash
+      run: |
+        CONFIG_ARG=""
+        if [ -f "${{ inputs.config-file }}" ]; then
+          CONFIG_ARG="--config ${{ inputs.config-file }}"
+        fi
+        
+        ruff format \
+          --check \
+          --diff \
+          $CONFIG_ARG \
+          ${{ inputs.target-path }}

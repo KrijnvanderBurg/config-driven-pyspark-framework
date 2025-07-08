@@ -1,0 +1,55 @@
+name: 'Validate Configuration'
+description: 'Validate GitHub Actions configuration file'
+inputs:
+  config-file:
+    description: 'Path to configuration file'
+    required: false
+    default: '.github/config.yml'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Validate configuration
+      shell: bash
+      run: |
+        CONFIG_FILE="${{ inputs.config-file }}"
+        
+        if [ ! -f "$CONFIG_FILE" ]; then
+          echo "⚠️  Configuration file not found: $CONFIG_FILE"
+          echo "Using default configuration values"
+          exit 0
+        fi
+        
+        echo "✅ Configuration file found: $CONFIG_FILE"
+        
+        # Basic YAML syntax validation
+        if command -v python3 &> /dev/null; then
+          python3 -c "
+import yaml
+import sys
+
+try:
+    with open('$CONFIG_FILE', 'r') as f:
+        config = yaml.safe_load(f)
+    print('✅ Configuration file has valid YAML syntax')
+    
+    # Basic structure validation
+    required_sections = ['python', 'tools', 'testing', 'triggers']
+    missing_sections = [section for section in required_sections if section not in config]
+    
+    if missing_sections:
+        print(f'⚠️  Missing configuration sections: {missing_sections}')
+        sys.exit(1)
+    else:
+        print('✅ All required configuration sections present')
+        
+except yaml.YAMLError as e:
+    print(f'❌ Invalid YAML syntax: {e}')
+    sys.exit(1)
+except Exception as e:
+    print(f'❌ Configuration validation failed: {e}')
+    sys.exit(1)
+"
+        else
+          echo "⚠️  Python not available, skipping advanced validation"
+        fi

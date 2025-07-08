@@ -1,0 +1,47 @@
+name: 'Semgrep Security Scanner'
+description: 'Scan for security issues using Semgrep'
+inputs:
+  target-path:
+    description: 'Path to scan'
+    required: false
+    default: '.'
+  config-file:
+    description: 'Path to semgrep configuration file'
+    required: false
+    default: '.devcontainer/.dotfiles/python/semgrep.yaml'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Install Semgrep
+      shell: bash
+      run: |
+        if ! command -v semgrep &> /dev/null; then
+          pip install semgrep
+        fi
+    
+    - name: Run Semgrep
+      shell: bash
+      run: |
+        CONFIG_ARG="--config=auto"
+        if [ -f "${{ inputs.config-file }}" ]; then
+          CONFIG_ARG="--config ${{ inputs.config-file }}"
+        fi
+        
+        semgrep \
+          --json \
+          --output=semgrep-results.json \
+          $CONFIG_ARG \
+          ${{ inputs.target-path }} || true
+        
+        # Also output to console
+        semgrep \
+          $CONFIG_ARG \
+          ${{ inputs.target-path }}
+    
+    - name: Upload Semgrep results
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: semgrep-results
+        path: semgrep-results.json

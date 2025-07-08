@@ -1,0 +1,36 @@
+name: 'Ruff Linter'
+description: 'Lint code using Ruff'
+inputs:
+  target-path:
+    description: 'Path to lint'
+    required: false
+    default: '.'
+  config-file:
+    description: 'Path to ruff configuration file'
+    required: false
+    default: '.devcontainer/.dotfiles/python/ruff.toml'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Run Ruff linter
+      shell: bash
+      run: |
+        target_path="${{ inputs.target-path }}"
+        config_filepath="${{ inputs.config-file }}"
+        
+        echo "Scanning folder: $target_path"
+        echo "Config file: $config_filepath"
+        
+        # Install ruff if not already installed
+        if ! command -v ruff &> /dev/null; then
+            echo "Installing ruff..."
+            pip install ruff --quiet
+        fi
+        echo -n "ruff version: " && ruff --version
+        
+        ruff check "$target_path" \
+          --config "$config_filepath" \
+          --no-fix \
+          --diff \
+          --show-files

@@ -1,0 +1,22 @@
+name: 'Python Type Checking'
+description: 'Run all Python type checkers'
+inputs:
+  target-path:
+    description: 'Path to type check'
+    required: false
+    default: 'src'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Run MyPy
+      uses: ./.github/actions/atomic/mypy
+      with:
+        target-path: ${{ inputs.target-path }}
+      continue-on-error: true
+    
+    - name: Run Pyright
+      uses: ./.github/actions/atomic/pyright
+      with:
+        target-path: ${{ inputs.target-path }}
+      continue-on-error: true

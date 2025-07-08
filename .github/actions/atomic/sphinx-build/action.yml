@@ -1,0 +1,31 @@
+name: 'Sphinx Build'
+description: 'Build documentation using Sphinx'
+inputs:
+  docs-path:
+    description: 'Path to documentation source'
+    required: false
+    default: 'docs'
+  build-path:
+    description: 'Path to build output'
+    required: false
+    default: 'docs/_build'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Install Sphinx dependencies
+      shell: bash
+      run: |
+        poetry run pip install sphinx sphinx-rtd-theme sphinx-autodoc-typehints
+    
+    - name: Build documentation
+      shell: bash
+      run: |
+        cd ${{ inputs.docs-path }}
+        poetry run sphinx-build -b html . _build/html -W --keep-going
+    
+    - name: Upload documentation artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: documentation
+        path: ${{ inputs.build-path }}/html

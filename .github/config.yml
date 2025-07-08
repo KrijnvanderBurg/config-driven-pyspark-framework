@@ -1,0 +1,192 @@
+# GitHub Actions Configuration
+# This file contains configuration options for customizing the GitHub Actions workflows
+
+# Python Configuration
+python:
+  # Default Python version for workflows
+  default_version: "3.11"
+  
+  # Python versions to test in matrix builds
+  test_versions:
+    - "3.9"
+    - "3.10" 
+    - "3.11"
+    - "3.12"
+  
+  # Source and test directories
+  src_directory: "src"
+  tests_directory: "tests"
+  pyproject_file: "pyproject.toml"
+
+# Tool Configuration
+tools:
+  # Formatters
+  formatters:
+    black:
+      enabled: true
+      config_file: ".devcontainer/.dotfiles/python/.black"
+    isort:
+      enabled: true
+      config_file: ".devcontainer/.dotfiles/python/.isort.cfg"
+    ruff_formatter:
+      enabled: true
+      config_file: ".devcontainer/.dotfiles/python/ruff.toml"
+  
+  # Linters
+  linters:
+    ruff:
+      enabled: true
+      config_file: ".devcontainer/.dotfiles/python/ruff.toml"
+    pylint:
+      enabled: true
+      config_file: ".devcontainer/.dotfiles/python/.pylintrc"
+      continue_on_error: true
+    flake8:
+      enabled: true
+      config_file: ".devcontainer/.dotfiles/python/.flake8"
+      continue_on_error: true
+  
+  # Type Checkers
+  type_checkers:
+    mypy:
+      enabled: true
+      config_file: ".devcontainer/.dotfiles/python/mypy.ini"
+      continue_on_error: true
+    pyright:
+      enabled: true
+      config_file: ".devcontainer/.dotfiles/python/pyrightconfig.json"
+      continue_on_error: true
+  
+  # Security Scanners
+  security:
+    bandit:
+      enabled: true
+      config_file: ".devcontainer/.dotfiles/python/bandit.ini"
+    semgrep:
+      enabled: true
+      config_file: ".devcontainer/.dotfiles/python/semgrep.yaml"
+    trufflehog:
+      enabled: true
+    safety:
+      enabled: true
+    codeql:
+      enabled: true
+      queries: "security-extended,security-and-quality"
+
+# Testing Configuration
+testing:
+  # Test runner configuration
+  pytest:
+    config_file: ".devcontainer/.dotfiles/python/pytest.ini"
+    coverage_config: ".devcontainer/.dotfiles/python/.coveragerc"
+    junit_output: "JUNIT-TEST.xml"
+    coverage_output: "coverage.xml"
+    html_coverage: "htmlcov"
+  
+  # E2E test configuration
+  e2e_tests:
+    enabled: true
+    test_cases:
+      - "cast"
+      - "drop"
+      - "dropduplicates"
+      - "filter"
+      - "join"
+      - "select"
+      - "withcolumn"
+
+# Workflow Triggers
+triggers:
+  # CI triggers
+  ci:
+    push_branches: ["main", "develop"]
+    pr_branches: ["main", "develop"]
+    manual_trigger: true
+  
+  # Security scan schedule
+  security:
+    schedule: "0 2 * * *"  # Daily at 2 AM UTC
+    on_dependency_changes: true
+  
+  # Dependency update schedule
+  dependency_update:
+    schedule: "0 9 * * 1"  # Weekly on Mondays at 9 AM UTC
+    auto_merge: false
+  
+  # E2E test schedule
+  e2e_tests:
+    schedule: "0 3 * * *"  # Nightly at 3 AM UTC
+    on_main_push: true
+
+# Caching Configuration
+caching:
+  # Poetry dependency caching
+  poetry:
+    enabled: true
+    key_prefix: "poetry"
+    include_lock_file: true
+  
+  # Cache retention
+  retention_days: 7
+
+# Artifact Configuration
+artifacts:
+  # Test results
+  test_results:
+    retention_days: 30
+    include_coverage: true
+    include_junit: true
+  
+  # Security scan results
+  security_results:
+    retention_days: 90
+    upload_sarif: true
+  
+  # Build artifacts
+  build_artifacts:
+    retention_days: 30
+    include_wheel: true
+    include_sdist: true
+
+# Documentation Configuration
+documentation:
+  # Sphinx configuration
+  sphinx:
+    source_dir: "docs"
+    build_dir: "docs/_build"
+    requirements: "sphinx sphinx-rtd-theme sphinx-autodoc-typehints"
+  
+  # GitHub Pages
+  pages:
+    enabled: true
+    branch: "main"
+    auto_deploy: true
+
+# Release Configuration
+release:
+  # PyPI publishing
+  pypi:
+    enabled: true
+    use_trusted_publishing: true
+    environment: "pypi"
+  
+  # GitHub releases
+  github_releases:
+    enabled: true
+    upload_artifacts: true
+
+# Notification Configuration
+notifications:
+  # Slack notifications (if configured)
+  slack:
+    enabled: false
+    webhook_secret: "SLACK_WEBHOOK_URL"
+    channels:
+      success: "#deployments"
+      failure: "#alerts"
+  
+  # Email notifications
+  email:
+    enabled: false
+    on_failure: true
+    on_success: false

@@ -1,0 +1,29 @@
+name: 'MyPy Type Checker'
+description: 'Type check code using MyPy'
+inputs:
+  target-path:
+    description: 'Path to type check'
+    required: false
+    default: '.'
+  config-file:
+    description: 'Path to mypy configuration file'
+    required: false
+    default: '.devcontainer/.dotfiles/python/mypy.ini'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Run MyPy
+      shell: bash
+      run: |
+        CONFIG_ARG=""
+        if [ -f "${{ inputs.config-file }}" ]; then
+          CONFIG_ARG="--config-file ${{ inputs.config-file }}"
+        fi
+        
+        mypy \
+          --show-error-codes \
+          --show-error-context \
+          --pretty \
+          $CONFIG_ARG \
+          ${{ inputs.target-path }}
